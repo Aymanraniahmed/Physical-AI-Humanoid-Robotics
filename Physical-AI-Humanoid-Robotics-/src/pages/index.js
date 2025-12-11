@@ -300,6 +300,16 @@ function HomepageHeader() {
   );
 }
 
+function getModulePath(number) {
+  const paths = {
+    '1': 'module-1-ros2/prerequisites',
+    '2': 'module-2-simulation/prerequisites',
+    '3': 'module-3-isaac/prerequisites',
+    '4': 'module-4-vla/prerequisites'
+  };
+  return paths[number] || 'intro/what-is-physical-ai';
+}
+
 function ModuleCard({ number, title, description, topics, color, delay }) {
   return (
     <div className={`${styles.moduleCard} ${styles[color]}`} data-aos="fade-up" data-aos-delay={delay}>
@@ -319,7 +329,7 @@ function ModuleCard({ number, title, description, topics, color, delay }) {
           <span key={idx} className={styles.topic}>{topic}</span>
         ))}
       </div>
-      <Link to={`/docs/module-${number}`} className={styles.moduleLink}>
+      <Link to={`/docs/${getModulePath(number)}`} className={styles.moduleLink}>
         Explore Module <span>→</span>
       </Link>
     </div>
