@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git fetch:*)",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -File .specify/scripts/powershell/create-new-feature.ps1 -Number 1 -ShortName \"physical-ai-book\" -Json)",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -Command \"& { $desc = Get-Content -Path ''temp_feature_desc.txt'' -Raw; & ''.\\.specify\\scripts\\powershell\\create-new-feature.ps1'' -Number 1 -ShortName ''physical-ai-book'' -Json $desc }\")",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -File .specify/scripts/powershell/create-new-feature.ps1 -Number 1 -ShortName \"physical-ai-book\" -Json \"Physical AI Humanoid Robotics technical book with ROS 2 Gazebo Isaac and VLA\")",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -File .specify/scripts/bash/create-phr.sh --title \"Physical AI Book Specification\" --stage spec --feature \"001-physical-ai-book\" --json)",
+      "Bash(git config:*)",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -File .specify/scripts/powershell/check-prerequisites.ps1 -Json -PathsOnly)",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -File .specify/scripts/powershell/setup-plan.ps1 -Json)",
+      "Bash(npm run build:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

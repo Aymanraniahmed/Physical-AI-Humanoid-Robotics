@@ -1,0 +1,132 @@
+<!-- Physical AI & Humanoid Robotics - Premium Animated Logo -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <!-- Gradient Definitions -->
+  <defs>
+    <!-- Brand Gradient: Deep Blue → Electric Blue → Cyber Blue -->
+    <linearGradient id="brandGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#001F3F;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#007BFF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00D4FF;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Glow Effect for Eyes and Core -->
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Radial Gradient for Background -->
+    <radialGradient id="bgGradient" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#00D4FF;stop-opacity:0.15" />
+      <stop offset="100%" style="stop-color:#007BFF;stop-opacity:0.05" />
+    </radialGradient>
+  </defs>
+
+  <!-- Background Glow -->
+  <circle cx="100" cy="100" r="90" fill="url(#bgGradient)"/>
+
+  <!-- Neural Network Pattern (Background) -->
+  <g opacity="0.2">
+    <circle cx="100" cy="45" r="2.5" fill="#00D4FF"/>
+    <circle cx="75" cy="75" r="2.5" fill="#007BFF"/>
+    <circle cx="125" cy="75" r="2.5" fill="#007BFF"/>
+    <circle cx="60" cy="115" r="2.5" fill="#00D4FF"/>
+    <circle cx="140" cy="115" r="2.5" fill="#00D4FF"/>
+    <circle cx="100" cy="150" r="2.5" fill="#007BFF"/>
+
+    <line x1="100" y1="45" x2="75" y2="75" stroke="#00D4FF" stroke-width="0.8" opacity="0.4"/>
+    <line x1="100" y1="45" x2="125" y2="75" stroke="#00D4FF" stroke-width="0.8" opacity="0.4"/>
+    <line x1="75" y1="75" x2="60" y2="115" stroke="#007BFF" stroke-width="0.8" opacity="0.4"/>
+    <line x1="125" y1="75" x2="140" y2="115" stroke="#007BFF" stroke-width="0.8" opacity="0.4"/>
+    <line x1="60" y1="115" x2="100" y2="150" stroke="#00D4FF" stroke-width="0.8" opacity="0.4"/>
+    <line x1="140" y1="115" x2="100" y2="150" stroke="#00D4FF" stroke-width="0.8" opacity="0.4"/>
+  </g>
+
+  <!-- Main Robot Figure -->
+  <g filter="url(#glow)">
+    <!-- Head -->
+    <rect x="82" y="55" width="36" height="28" rx="7" fill="url(#brandGradient)" opacity="0.95"/>
+
+    <!-- AI Eyes with Blinking Animation -->
+    <circle cx="92" cy="69" r="3.5" fill="#00D4FF">
+      <animate attributeName="opacity" values="1;0.3;1" dur="3s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="108" cy="69" r="3.5" fill="#00D4FF">
+      <animate attributeName="opacity" values="1;0.3;1" dur="3s" repeatCount="indefinite"/>
+    </circle>
+
+    <!-- Signal Antenna with Pulse -->
+    <line x1="100" y1="55" x2="100" y2="48" stroke="url(#brandGradient)" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="100" cy="46" r="2.5" fill="#00D4FF">
+      <animate attributeName="r" values="2.5;4;2.5" dur="2s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="1;0.5;1" dur="2s" repeatCount="indefinite"/>
+    </circle>
+
+    <!-- Body Core -->
+    <rect x="78" y="86" width="44" height="40" rx="7" fill="url(#brandGradient)" opacity="0.95"/>
+
+    <!-- Central AI Core (Pulsing) -->
+    <circle cx="100" cy="106" r="8" fill="#00D4FF" opacity="0.7">
+      <animate attributeName="r" values="8;10;8" dur="2.5s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.7;1;0.7" dur="2.5s" repeatCount="indefinite"/>
+    </circle>
+
+    <!-- Circuit Lines on Body -->
+    <g stroke="#00D4FF" stroke-width="1.2" opacity="0.9" stroke-linecap="round">
+      <line x1="86" y1="94" x2="94" y2="94"/>
+      <line x1="106" y1="94" x2="114" y2="94"/>
+      <line x1="86" y1="102" x2="92" y2="102"/>
+      <line x1="108" y1="102" x2="114" y2="102"/>
+      <line x1="86" y1="110" x2="94" y2="110"/>
+      <line x1="106" y1="110" x2="114" y2="110"/>
+      <line x1="86" y1="118" x2="92" y2="118"/>
+      <line x1="108" y1="118" x2="114" y2="118"/>
+    </g>
+
+    <!-- Arms -->
+    <rect x="58" y="92" width="14" height="30" rx="6" fill="url(#brandGradient)" opacity="0.9"/>
+    <rect x="128" y="92" width="14" height="30" rx="6" fill="url(#brandGradient)" opacity="0.9"/>
+
+    <!-- Shoulder Joints -->
+    <circle cx="78" cy="94" r="5" fill="#007BFF"/>
+    <circle cx="122" cy="94" r="5" fill="#007BFF"/>
+
+    <!-- Hands/Grippers -->
+    <circle cx="65" cy="124" r="6" fill="#00D4FF" opacity="0.95"/>
+    <circle cx="135" cy="124" r="6" fill="#00D4FF" opacity="0.95"/>
+
+    <!-- Legs -->
+    <rect x="86" y="129" width="12" height="30" rx="6" fill="url(#brandGradient)" opacity="0.9"/>
+    <rect x="102" y="129" width="12" height="30" rx="6" fill="url(#brandGradient)" opacity="0.9"/>
+
+    <!-- Hip Joints -->
+    <circle cx="92" cy="129" r="4.5" fill="#007BFF"/>
+    <circle cx="108" cy="129" r="4.5" fill="#007BFF"/>
+
+    <!-- Feet Platforms -->
+    <ellipse cx="92" cy="162" rx="8" ry="5" fill="#00D4FF" opacity="0.95"/>
+    <ellipse cx="108" cy="162" rx="8" ry="5" fill="#00D4FF" opacity="0.95"/>
+  </g>
+
+  <!-- Energy Field Rings (Animated) -->
+  <g opacity="0.15">
+    <circle cx="100" cy="100" r="75" stroke="#00D4FF" stroke-width="1" fill="none">
+      <animate attributeName="r" values="72;78;72" dur="4s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.15;0.3;0.15" dur="4s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="100" cy="100" r="68" stroke="#007BFF" stroke-width="1" fill="none">
+      <animate attributeName="r" values="68;72;68" dur="3s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.2;0.35;0.2" dur="3s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+
+  <!-- Hexagonal AI Pattern Accents -->
+  <g opacity="0.12" stroke="url(#brandGradient)" stroke-width="1" fill="none">
+    <polygon points="100,30 112,36 112,48 100,54 88,48 88,36"/>
+    <polygon points="75,90 83,94 83,102 75,106 67,102 67,94"/>
+    <polygon points="125,90 133,94 133,102 125,106 117,102 117,94"/>
+  </g>
+</svg>
