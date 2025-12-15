@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Physical AI Book RAG Chatbot</title>
+    <link rel="stylesheet" href="static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>📚 Physical AI Humanoid Robotics</h1>
+            <p>Ask questions about the book!</p>
+        </header>
+
+        <!-- Book Upload Section -->
+        <div class="upload-section" id="uploadSection">
+            <h2>Step 1: Upload Your Book</h2>
+            <div class="upload-form">
+                <input type="file" id="bookFile" accept=".pdf,.html,.htm,.epub">
+                <button onclick="uploadBook()" id="uploadBtn">Upload Book</button>
+            </div>
+            <div id="uploadStatus" class="status-message"></div>
+        </div>
+
+        <!-- Chat Section -->
+        <div class="chat-section" id="chatSection" style="display: none;">
+            <h2>Ask Questions</h2>
+
+            <!-- Mode Selector -->
+            <div class="mode-selector">
+                <button class="mode-btn active" onclick="switchMode('normal')" id="normalModeBtn">
+                    🔍 Full Book Search
+                </button>
+                <button class="mode-btn" onclick="switchMode('selection')" id="selectionModeBtn">
+                    📝 Selected Text Q&A
+                </button>
+            </div>
+
+            <!-- Normal Chat Mode -->
+            <div id="normalChatMode">
+                <!-- Chat Messages -->
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message bot-message">
+                        <div class="message-content">
+                            Hi! I'm your RAG chatbot. Ask me anything about the Physical AI Humanoid Robotics book!
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Input -->
+                <div class="chat-input">
+                    <input
+                        type="text"
+                        id="userInput"
+                        placeholder="Type your question here..."
+                        onkeypress="handleKeyPress(event)"
+                    >
+                    <button onclick="sendMessage()" id="sendBtn">Send</button>
+                </div>
+            </div>
+
+            <!-- Selection Chat Mode -->
+            <div id="selectionChatMode" style="display: none;">
+                <div class="selection-container">
+                    <textarea
+                        id="selectedText"
+                        placeholder="Paste the text you want to ask about here..."
+                        rows="6"
+                    ></textarea>
+
+                    <input
+                        type="text"
+                        id="selectionQuestion"
+                        placeholder="Ask a question about the selected text..."
+                        onkeypress="handleSelectionKeyPress(event)"
+                    >
+
+                    <button onclick="askSelection()" id="selectionSendBtn">Ask Question</button>
+                </div>
+
+                <!-- Selection Response -->
+                <div id="selectionResponse" class="selection-response"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="spinner"></div>
+        <p>Processing...</p>
+    </div>
+
+    <script src="static/js/app.js"></script>
+</body>
+</html>

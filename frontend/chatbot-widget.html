@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Physical AI Book - Chatbot Widget</title>
+    <link rel="stylesheet" href="static/css/widget.css">
+</head>
+<body>
+    <!-- Your actual website content goes here -->
+    <div class="website-content">
+        <header style="text-align: center; padding: 50px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+            <h1>📚 Physical AI Humanoid Robotics Book</h1>
+            <p>Your website content here... (This is just a demo page)</p>
+        </header>
+
+        <main style="max-width: 1200px; margin: 50px auto; padding: 20px;">
+            <h2>Welcome to the Book Website</h2>
+            <p>This is your main website content. The chatbot is available in the bottom-right corner!</p>
+            <p>Click the purple chat button to ask questions about the book.</p>
+
+            <div style="margin: 30px 0; padding: 20px; background: #f5f5f5; border-radius: 10px;">
+                <h3>About the Book</h3>
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. This is placeholder content for your website.</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- Floating Chat Button -->
+    <button class="chat-button" id="chatButton" onclick="toggleChat()">
+        <svg class="chat-icon" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+        <svg class="close-icon" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+        <span class="notification-badge" id="notificationBadge">1</span>
+    </button>
+
+    <!-- Chat Widget Popup -->
+    <div class="chat-widget" id="chatWidget">
+        <!-- Chat Header -->
+        <div class="chat-header">
+            <div class="chat-header-content">
+                <div class="bot-avatar">🤖</div>
+                <div>
+                    <h3>Physical AI Assistant</h3>
+                    <p class="status">
+                        <span class="status-dot"></span>
+                        Online
+                    </p>
+                </div>
+            </div>
+            <button class="minimize-btn" onclick="toggleChat()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Upload Section (initially visible) -->
+        <div class="upload-section-widget" id="uploadSectionWidget">
+            <div class="upload-prompt">
+                <div class="upload-icon">📚</div>
+                <h4>Upload Your Book First</h4>
+                <p>Upload PDF, HTML, or EPUB to start chatting</p>
+
+                <input type="file" id="bookFileWidget" accept=".pdf,.html,.htm,.epub" style="display: none;" onchange="handleFileSelect()">
+                <button class="upload-trigger-btn" onclick="document.getElementById('bookFileWidget').click()">
+                    📤 Choose Book File
+                </button>
+
+                <div id="uploadStatusWidget" class="upload-status"></div>
+                <button id="uploadBtnWidget" class="upload-btn" onclick="uploadBookWidget()" style="display: none;">
+                    Upload & Process
+                </button>
+            </div>
+        </div>
+
+        <!-- Chat Messages Section (hidden initially) -->
+        <div class="chat-messages-section" id="chatMessagesSection" style="display: none;">
+            <!-- Mode Tabs -->
+            <div class="mode-tabs">
+                <button class="mode-tab active" onclick="switchModeWidget('normal')" id="normalTab">
+                    🔍 Search Book
+                </button>
+                <button class="mode-tab" onclick="switchModeWidget('selection')" id="selectionTab">
+                    📝 Selected Text
+                </button>
+            </div>
+
+            <!-- Normal Chat Mode -->
+            <div id="normalChatWidget">
+                <div class="chat-messages" id="chatMessagesWidget">
+                    <div class="message bot-message">
+                        <div class="message-content">
+                            Hi! Ask me anything about the book! 📖
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chat-input-container">
+                    <input
+                        type="text"
+                        id="userInputWidget"
+                        class="chat-input"
+                        placeholder="Ask a question..."
+                        onkeypress="handleKeyPressWidget(event)"
+                    >
+                    <button class="send-btn" onclick="sendMessageWidget()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Selection Chat Mode -->
+            <div id="selectionChatWidget" style="display: none;">
+                <div class="selection-input-area">
+                    <textarea
+                        id="selectedTextWidget"
+                        placeholder="Paste the text here..."
+                        rows="4"
+                    ></textarea>
+                    <input
+                        type="text"
+                        id="selectionQuestionWidget"
+                        placeholder="Your question..."
+                        onkeypress="handleSelectionKeyPressWidget(event)"
+                    >
+                    <button class="send-btn-full" onclick="askSelectionWidget()">
+                        Ask Question
+                    </button>
+                </div>
+                <div id="selectionResponseWidget" class="selection-response-area"></div>
+            </div>
+        </div>
+
+        <!-- Powered By Footer -->
+        <div class="chat-footer">
+            <small>Powered by OpenAI & Qdrant</small>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="loading-spinner" style="display: none;">
+        <div class="spinner"></div>
+    </div>
+
+    <script src="static/js/widget.js"></script>
+</body>
+</html>

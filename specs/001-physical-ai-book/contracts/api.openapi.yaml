@@ -1,0 +1,502 @@
+openapi: 3.1.0
+info:
+  title: RAG Chatbot Backend API
+  version: 1.0.0
+  description: |
+    Production-ready RAG (Retrieval-Augmented Generation) chatbot backend for AI-native book platform.
+
+    Features:
+    - Book ingestion from PDF/HTML/EPUB with vector embedding
+    - Normal RAG chat with semantic search (Qdrant)
+    - Selected-text chat (no vector search, text-only Q&A)
+    - Multi-turn conversation support with session persistence
+    - Streaming responses via Server-Sent Events
+
+  contact:
+    name: API Support
+    email: support@example.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+  - url: https://api.example.com
+    description: Production server
+
+tags:
+  - name: ingest
+    description: Book ingestion and indexing
+  - name: chat
+    description: Conversational Q&A endpoints
+  - name: health
+    description: Service health and monitoring
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      description: Check status of backend services (Postgres, Qdrant, OpenAI)
+      operationId: getHealth
+      tags:
+        - health
+      responses:
+        '200':
+          description: Service health status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              examples:
+                healthy:
+                  value:
+                    status: healthy
+                    services:
+                      postgres: up
+                      qdrant: up
+                      openai: up
+                    timestamp: "2025-12-15T10:30:00Z"
+                degraded:
+                  value:
+                    status: degraded
+                    services:
+                      postgres: up
+                      qdrant: down
+                      openai: up
+                    timestamp: "2025-12-15T10:30:00Z"
+
+  /ingest/book:
+    post:
+      summary: Ingest a book
+      description: |
+        Upload and process a book file (PDF/HTML/EPUB) for RAG chat.
+
+        Process:
+        1. Parse document and extract text
+        2. Chunk text into segments (1000 tokens, 200 overlap)
+        3. Generate embeddings (OpenAI text-embedding-3-small)
+        4. Store embeddings in Qdrant
+        5. Save metadata in Postgres
+
+        Idempotency: If `book_id` is provided and exists, re-ingests (deletes old chunks, creates new).
+      operationId: ingestBook
+      tags:
+        - ingest
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Book file (PDF, HTML, or EPUB)
+                book_id:
+                  type: string
+                  format: uuid
+                  description: Optional UUID for re-ingestion (update existing book)
+                metadata:
+                  type: object
+                  description: Optional book metadata (JSON string)
+                  properties:
+                    isbn:
+                      type: string
+                    publisher:
+                      type: string
+                    version:
+                      type: string
+                    language:
+                      type: string
+                      default: en
+              required:
+                - file
+      responses:
+        '200':
+          description: Book ingested successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IngestResponse'
+              example:
+                book_id: "550e8400-e29b-41d4-a716-446655440000"
+                title: "Physical AI Humanoid Robotics"
+                total_chunks: 842
+                status: completed
+        '400':
+          description: Invalid file format or request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Invalid file format. Supported: PDF, HTML, EPUB"
+                details: "File extension .txt is not supported"
+        '500':
+          description: Ingestion failed (parsing, embedding, or storage error)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IngestResponse'
+              example:
+                book_id: "550e8400-e29b-41d4-a716-446655440000"
+                title: "Physical AI Humanoid Robotics"
+                total_chunks: 0
+                status: failed
+                error: "OpenAI API error: Rate limit exceeded"
+
+  /chat:
+    post:
+      summary: Normal RAG chat
+      description: |
+        Ask a question about the book using semantic search (Qdrant vector search).
+
+        Process:
+        1. Embed user query (OpenAI)
+        2. Search Qdrant for top-k relevant chunks (default: 5)
+        3. Load conversation history from Postgres (last 5 turns)
+        4. Build prompt: system + context + history + query
+        5. Generate response (OpenAI GPT-4o-mini, streaming)
+        6. Save user message + assistant response to Postgres
+
+        If `session_id` is not provided, creates a new session.
+
+        Response is streamed via Server-Sent Events (SSE).
+      operationId: chat
+      tags:
+        - chat
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+            example:
+              session_id: null
+              book_id: "550e8400-e29b-41d4-a716-446655440000"
+              message: "What is Physical AI and how does it differ from traditional AI?"
+      responses:
+        '200':
+          description: Chat response with sources (streaming or full response)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResponse'
+              example:
+                session_id: "660e8400-e29b-41d4-a716-446655440001"
+                response: "Physical AI refers to artificial intelligence systems that interact with the physical world through robotic embodiment..."
+                sources:
+                  - chunk_id: "770e8400-e29b-41d4-a716-446655440002"
+                    text: "Physical AI combines machine learning with robotics to create embodied intelligence that perceives and acts in the real world..."
+                    score: 0.92
+                    metadata:
+                      page_number: 12
+                      chapter: "Introduction"
+                  - chunk_id: "770e8400-e29b-41d4-a716-446655440003"
+                    text: "Unlike traditional AI which operates in digital spaces, Physical AI must handle uncertainty from sensors, dynamics, and real-world complexity..."
+                    score: 0.88
+                    metadata:
+                      page_number: 13
+                      chapter: "Introduction"
+                timestamp: "2025-12-15T10:35:00Z"
+            text/event-stream:
+              schema:
+                type: string
+                description: SSE stream of response chunks
+              example: |
+                data: Physical AI refers to
+
+                data: artificial intelligence systems that
+
+                data: interact with the physical world
+
+                data: [DONE]
+
+        '400':
+          description: Invalid request (missing fields, invalid UUIDs)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Book or session not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal error (Qdrant, OpenAI, or database failure)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /chat/selection:
+    post:
+      summary: Selected-text chat
+      description: |
+        Ask a question about user-selected text (NO vector search).
+
+        Process:
+        1. Load conversation history from Postgres (last 5 turns)
+        2. Build prompt: system + selected_text + history + question
+        3. Generate response (OpenAI GPT-4o-mini, streaming)
+        4. Save user message + assistant response to Postgres
+
+        CONSTRAINT: Does NOT call Qdrant. Operates only on `selected_text`.
+
+        Use case: User highlights a paragraph and asks "Explain this in simpler terms".
+
+        If `session_id` is not provided, creates a new session.
+
+        Response is streamed via Server-Sent Events (SSE).
+      operationId: chatSelection
+      tags:
+        - chat
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SelectionChatRequest'
+            example:
+              session_id: null
+              selected_text: "ROS 2 uses a Data Distribution Service (DDS) middleware for communication between nodes. DDS provides publish-subscribe and request-reply patterns with Quality-of-Service (QoS) policies for reliability, latency, and bandwidth control."
+              question: "What is DDS and why is it important for ROS 2?"
+      responses:
+        '200':
+          description: Chat response (streaming or full response, no sources)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SelectionChatResponse'
+              example:
+                session_id: "660e8400-e29b-41d4-a716-446655440004"
+                response: "DDS (Data Distribution Service) is a middleware layer that ROS 2 uses for inter-process communication. It's important because it provides flexible communication patterns (publish-subscribe for sensor data, request-reply for services) and QoS policies that let you tune reliability vs performance based on your application needs (e.g., best-effort for high-frequency sensor data, reliable for critical commands)."
+                timestamp: "2025-12-15T10:40:00Z"
+            text/event-stream:
+              schema:
+                type: string
+                description: SSE stream of response chunks
+        '400':
+          description: Invalid request (missing fields, text too long)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Session not found (if session_id provided)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal error (OpenAI or database failure)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+          description: Overall system health
+        services:
+          type: object
+          properties:
+            postgres:
+              type: string
+              enum: [up, down]
+            qdrant:
+              type: string
+              enum: [up, down]
+            openai:
+              type: string
+              enum: [up, down]
+          required:
+            - postgres
+            - qdrant
+            - openai
+        timestamp:
+          type: string
+          format: date-time
+      required:
+        - status
+        - services
+        - timestamp
+
+    IngestResponse:
+      type: object
+      properties:
+        book_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          minLength: 1
+          maxLength: 500
+        total_chunks:
+          type: integer
+          minimum: 0
+        status:
+          type: string
+          enum: [completed, failed]
+        error:
+          type: string
+          description: Error message if status is 'failed'
+      required:
+        - book_id
+        - title
+        - total_chunks
+        - status
+
+    ChatRequest:
+      type: object
+      properties:
+        session_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: Existing session ID (null = create new session)
+        book_id:
+          type: string
+          format: uuid
+          description: Book to query
+        message:
+          type: string
+          minLength: 1
+          maxLength: 5000
+          description: User question
+      required:
+        - book_id
+        - message
+
+    ChatResponse:
+      type: object
+      properties:
+        session_id:
+          type: string
+          format: uuid
+        response:
+          type: string
+          description: Assistant's answer
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChunkSource'
+          description: Retrieved chunks from Qdrant (top-k)
+        timestamp:
+          type: string
+          format: date-time
+      required:
+        - session_id
+        - response
+        - sources
+        - timestamp
+
+    SelectionChatRequest:
+      type: object
+      properties:
+        session_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: Existing session ID (null = create new session)
+        selected_text:
+          type: string
+          minLength: 1
+          maxLength: 10000
+          description: User-highlighted text from book
+        question:
+          type: string
+          minLength: 1
+          maxLength: 5000
+          description: Question about selected text
+      required:
+        - selected_text
+        - question
+
+    SelectionChatResponse:
+      type: object
+      properties:
+        session_id:
+          type: string
+          format: uuid
+        response:
+          type: string
+          description: Assistant's answer (based only on selected_text)
+        timestamp:
+          type: string
+          format: date-time
+      required:
+        - session_id
+        - response
+        - timestamp
+
+    ChunkSource:
+      type: object
+      description: Retrieved chunk from Qdrant vector search
+      properties:
+        chunk_id:
+          type: string
+          format: uuid
+        text:
+          type: string
+          maxLength: 500
+          description: Chunk text (truncated for API response if >500 chars)
+        score:
+          type: number
+          format: float
+          minimum: 0.0
+          maximum: 1.0
+          description: Cosine similarity score (higher = more relevant)
+        metadata:
+          type: object
+          properties:
+            page_number:
+              type: integer
+              nullable: true
+            chapter:
+              type: string
+              nullable: true
+            section:
+              type: string
+              nullable: true
+      required:
+        - chunk_id
+        - text
+        - score
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Human-readable error message
+        details:
+          type: string
+          description: Technical details (stack trace, validation errors)
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for debugging
+      required:
+        - error
+
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for authentication (future feature)
+
+# Future: Add security requirement when implementing auth
+# security:
+#   - ApiKeyAuth: []
